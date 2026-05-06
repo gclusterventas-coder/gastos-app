@@ -3,123 +3,162 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Gastos compartidos</title>
+<title>Gastos Pro</title>
 <style>
-body { background:#000; margin:0; color:#fff; font-family:system-ui; }
-.app { padding:1rem; }
-.header { display:flex; justify-content:space-between; margin-bottom:1rem; }
-.tabs { display:flex; gap:4px; flex-wrap:wrap; }
-.tab { flex:1; padding:8px; background:#1e1e1e; border:none; color:#aaa; cursor:pointer; border-radius:10px; }
-.tab.active { background:#333; color:#fff; }
-.summary { background:#1e1e1e; padding:10px; border-radius:10px; margin-bottom:10px; }
-.item { padding:10px; border:1px solid #333; margin-bottom:6px; border-radius:10px; }
-.names { display:flex; gap:6px; margin-bottom:10px; }
-.names input { flex:1; padding:6px; border-radius:6px; border:none; }
+:root{
+  --bg:#0f0f10;
+  --card:#1a1a1d;
+  --text:#ffffff;
+  --muted:#9a9a9a;
+  --green:#22c55e;
+  --red:#ef4444;
+  --blue:#3b82f6;
+}
+
+body{background:var(--bg);color:var(--text);margin:0;font-family:system-ui}
+.app{padding:16px;max-width:900px;margin:auto}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+
+.names{display:flex;gap:8px;margin-bottom:10px}
+.names input{flex:1;background:var(--card);border:none;color:white;padding:8px;border-radius:8px}
+
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tab{flex:1;padding:8px;background:var(--card);border:none;color:var(--muted);border-radius:8px;cursor:pointer}
+.tab.active{background:#2a2a2e;color:white}
+
+.card{background:var(--card);padding:12px;border-radius:12px;margin-bottom:10px}
+.big{font-size:20px;font-weight:600}
+.row{display:flex;justify-content:space-between;margin-top:4px}
+
+.expense{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:10px;background:#151517;margin-bottom:6px}
+.left{display:flex;align-items:center;gap:8px}
+.icon{font-size:18px}
+.income{color:var(--green)}
+.expenseText{color:var(--red)}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">
-    <h3>💑 gastos del mes</h3>
-    <span>mayo 2026</span>
-  </div>
 
-  <div class="names">
-    <input id="nameYo" placeholder="tu nombre" />
-    <input id="nameElla" placeholder="su nombre" />
-  </div>
+<div class="header">
+<h3>💑 gastos del mes</h3>
+<span>mayo 2026</span>
+</div>
 
-  <div class="tabs">
-    <button class="tab active" onclick="setTab('yo')">yo</button>
-    <button class="tab" onclick="setTab('ella')">ella</button>
-    <button class="tab" onclick="setTab('hogar')">hogar</button>
-    <button class="tab" onclick="setTab('historico')">histórico</button>
-    <button class="tab" onclick="setTab('proyeccion')">proyección</button>
-  </div>
+<div class="names">
+<input id="nameYo" placeholder="tu nombre">
+<input id="nameElla" placeholder="su nombre">
+</div>
 
-  <div id="content"></div>
+<div class="tabs">
+<button class="tab active" onclick="setTab('resumen')">resumen</button>
+<button class="tab" onclick="setTab('detalle')">detalle</button>
+<button class="tab" onclick="setTab('historico')">histórico</button>
+<button class="tab" onclick="setTab('proyeccion')">proyección</button>
+</div>
+
+<div id="content"></div>
+
 </div>
 
 <script>
-let tab='yo';
+let tab='resumen';
 
-// nombres guardados
-const nameYoInput = document.getElementById('nameYo');
-const nameEllaInput = document.getElementById('nameElla');
+// guardar nombres
+const nameYo = document.getElementById('nameYo');
+const nameElla = document.getElementById('nameElla');
+nameYo.value = localStorage.getItem('nameYo')||'yo';
+nameElla.value = localStorage.getItem('nameElla')||'ella';
+nameYo.oninput=()=>localStorage.setItem('nameYo',nameYo.value);
+nameElla.oninput=()=>localStorage.setItem('nameElla',nameElla.value);
 
-nameYoInput.value = localStorage.getItem('nameYo') || 'yo';
-nameEllaInput.value = localStorage.getItem('nameElla') || 'ella';
-
-nameYoInput.oninput = () => localStorage.setItem('nameYo', nameYoInput.value);
-nameEllaInput.oninput = () => localStorage.setItem('nameElla', nameEllaInput.value);
-
-function getNameYo(){ return nameYoInput.value || 'yo'; }
-function getNameElla(){ return nameEllaInput.value || 'ella'; }
-
-let hogar=[{mes:'mayo',monto:217800}];
-let yo=[{mes:'mayo',monto:170900}];
-let ella=[{mes:'mayo',monto:166100}];
-
-let historico=[
-  {mes:'marzo',yo:150000,ella:140000,hogar:200000},
-  {mes:'abril',yo:160000,ella:155000,hogar:210000},
-  {mes:'mayo',yo:170900,ella:166100,hogar:217800}
+// datos
+let gastos=[
+ {tipo:'moto',icon:'🏍️',monto:18000,quien:'yo'},
+ {tipo:'tarjeta',icon:'💳',monto:32000,quien:'yo'},
+ {tipo:'salud',icon:'💊',monto:6500,quien:'yo'},
+ {tipo:'suscripciones',icon:'📱',monto:5500,quien:'yo'},
+ {tipo:'auto',icon:'🚗',monto:22000,quien:'ella'},
+ {tipo:'gimnasio',icon:'💪',monto:8000,quien:'ella'}
 ];
 
+let ingresos=[
+ {icon:'💵',monto:250000,quien:'yo'},
+ {icon:'💵',monto:240000,quien:'ella'}
+];
+
+let historico=[
+ {mes:'marzo',yo:150000,ella:140000},
+ {mes:'abril',yo:160000,ella:155000},
+ {mes:'mayo',yo:170900,ella:166100}
+];
+
+function sum(arr,filter){return arr.filter(filter).reduce((s,x)=>s+x.monto,0)}
+
 function render(){
-  let html='';
+ let html='';
 
-  if(tab==='yo'){
-    const t=yo[0];
-    html+=`<div class="summary">Total ${getNameYo()}: $${t.monto}</div>`;
-  }
+ const gYo=sum(gastos,x=>x.quien==='yo');
+ const gElla=sum(gastos,x=>x.quien==='ella');
+ const iYo=sum(ingresos,x=>x.quien==='yo');
+ const iElla=sum(ingresos,x=>x.quien==='ella');
 
-  if(tab==='ella'){
-    const t=ella[0];
-    html+=`<div class="summary">Total ${getNameElla()}: $${t.monto}</div>`;
-  }
+ if(tab==='resumen'){
+  html+=`<div class="card">
+   <div class="big">${nameYo.value}</div>
+   <div class="row"><span>ingresos</span><span class="income">$${iYo}</span></div>
+   <div class="row"><span>gastos</span><span class="expenseText">$${gYo}</span></div>
+   <div class="row"><b>balance</b><b>$${iYo-gYo}</b></div>
+  </div>`;
 
-  if(tab==='hogar'){
-    html+=`<div class="summary">Total hogar: $${hogar[0].monto}</div>`;
-  }
+  html+=`<div class="card">
+   <div class="big">${nameElla.value}</div>
+   <div class="row"><span>ingresos</span><span class="income">$${iElla}</span></div>
+   <div class="row"><span>gastos</span><span class="expenseText">$${gElla}</span></div>
+   <div class="row"><b>balance</b><b>$${iElla-gElla}</b></div>
+  </div>`;
+ }
 
-  if(tab==='historico'){
-    html+=`<div class="summary">Histórico mensual</div>`;
-    historico.forEach(h=>{
-      html+=`<div class="item">
-        <b>${h.mes}</b><br>
-        ${getNameYo()}: $${h.yo}<br>
-        ${getNameElla()}: $${h.ella}<br>
-        Hogar: $${h.hogar}
-      </div>`;
-    });
-  }
+ if(tab==='detalle'){
+  gastos.forEach(g=>{
+    html+=`<div class="expense">
+      <div class="left"><span class="icon">${g.icon}</span> ${g.tipo}</div>
+      <div>$${g.monto}</div>
+    </div>`;
+  });
+ }
 
-  if(tab==='proyeccion'){
-    html+=`<div class="summary">Proyección próximos meses</div>`;
+ if(tab==='historico'){
+  historico.forEach(h=>{
+   html+=`<div class="card">
+   <b>${h.mes}</b><br>
+   ${nameYo.value}: $${h.yo}<br>
+   ${nameElla.value}: $${h.ella}
+   </div>`;
+  });
+ }
 
-    const promedioYo = Math.round(historico.reduce((s,x)=>s+x.yo,0)/historico.length);
-    const promedioElla = Math.round(historico.reduce((s,x)=>s+x.ella,0)/historico.length);
-    const promedioHogar = Math.round(historico.reduce((s,x)=>s+x.hogar,0)/historico.length);
+ if(tab==='proyeccion'){
+  const avgYo=Math.round(historico.reduce((s,x)=>s+x.yo,0)/historico.length);
+  const avgElla=Math.round(historico.reduce((s,x)=>s+x.ella,0)/historico.length);
 
-    ['junio','julio','agosto'].forEach(m=>{
-      html+=`<div class="item">
-        <b>${m}</b><br>
-        ${getNameYo()} (estimado): $${promedioYo}<br>
-        ${getNameElla()} (estimado): $${promedioElla}<br>
-        Hogar: $${promedioHogar}
-      </div>`;
-    });
-  }
+  ['junio','julio','agosto'].forEach(m=>{
+   html+=`<div class="card">
+   <b>${m}</b><br>
+   ${nameYo.value}: $${avgYo}<br>
+   ${nameElla.value}: $${avgElla}
+   </div>`;
+  });
+ }
 
-  document.getElementById('content').innerHTML=html;
+ document.getElementById('content').innerHTML=html;
 }
 
 function setTab(t){
-  tab=t;
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-  event.target.classList.add('active');
-  render();
+ tab=t;
+ document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+ event.target.classList.add('active');
+ render();
 }
 
 render();
