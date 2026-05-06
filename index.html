@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gastos compartidos</title>
+<style>
+body { background:#000; margin:0; color:#fff; font-family:system-ui; }
+.app { padding:1rem; }
+.header { display:flex; justify-content:space-between; margin-bottom:1rem; }
+.tabs { display:flex; gap:4px; flex-wrap:wrap; }
+.tab { flex:1; padding:8px; background:#1e1e1e; border:none; color:#aaa; cursor:pointer; border-radius:10px; }
+.tab.active { background:#333; color:#fff; }
+.summary { background:#1e1e1e; padding:10px; border-radius:10px; margin-bottom:10px; }
+.item { padding:10px; border:1px solid #333; margin-bottom:6px; border-radius:10px; }
+.names { display:flex; gap:6px; margin-bottom:10px; }
+.names input { flex:1; padding:6px; border-radius:6px; border:none; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h3>💑 gastos del mes</h3>
+    <span>mayo 2026</span>
+  </div>
+
+  <div class="names">
+    <input id="nameYo" placeholder="tu nombre" />
+    <input id="nameElla" placeholder="su nombre" />
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="setTab('yo')">yo</button>
+    <button class="tab" onclick="setTab('ella')">ella</button>
+    <button class="tab" onclick="setTab('hogar')">hogar</button>
+    <button class="tab" onclick="setTab('historico')">histórico</button>
+    <button class="tab" onclick="setTab('proyeccion')">proyección</button>
+  </div>
+
+  <div id="content"></div>
+</div>
+
+<script>
+let tab='yo';
+
+// nombres guardados
+const nameYoInput = document.getElementById('nameYo');
+const nameEllaInput = document.getElementById('nameElla');
+
+nameYoInput.value = localStorage.getItem('nameYo') || 'yo';
+nameEllaInput.value = localStorage.getItem('nameElla') || 'ella';
+
+nameYoInput.oninput = () => localStorage.setItem('nameYo', nameYoInput.value);
+nameEllaInput.oninput = () => localStorage.setItem('nameElla', nameEllaInput.value);
+
+function getNameYo(){ return nameYoInput.value || 'yo'; }
+function getNameElla(){ return nameEllaInput.value || 'ella'; }
+
+let hogar=[{mes:'mayo',monto:217800}];
+let yo=[{mes:'mayo',monto:170900}];
+let ella=[{mes:'mayo',monto:166100}];
+
+let historico=[
+  {mes:'marzo',yo:150000,ella:140000,hogar:200000},
+  {mes:'abril',yo:160000,ella:155000,hogar:210000},
+  {mes:'mayo',yo:170900,ella:166100,hogar:217800}
+];
+
+function render(){
+  let html='';
+
+  if(tab==='yo'){
+    const t=yo[0];
+    html+=`<div class="summary">Total ${getNameYo()}: $${t.monto}</div>`;
+  }
+
+  if(tab==='ella'){
+    const t=ella[0];
+    html+=`<div class="summary">Total ${getNameElla()}: $${t.monto}</div>`;
+  }
+
+  if(tab==='hogar'){
+    html+=`<div class="summary">Total hogar: $${hogar[0].monto}</div>`;
+  }
+
+  if(tab==='historico'){
+    html+=`<div class="summary">Histórico mensual</div>`;
+    historico.forEach(h=>{
+      html+=`<div class="item">
+        <b>${h.mes}</b><br>
+        ${getNameYo()}: $${h.yo}<br>
+        ${getNameElla()}: $${h.ella}<br>
+        Hogar: $${h.hogar}
+      </div>`;
+    });
+  }
+
+  if(tab==='proyeccion'){
+    html+=`<div class="summary">Proyección próximos meses</div>`;
+
+    const promedioYo = Math.round(historico.reduce((s,x)=>s+x.yo,0)/historico.length);
+    const promedioElla = Math.round(historico.reduce((s,x)=>s+x.ella,0)/historico.length);
+    const promedioHogar = Math.round(historico.reduce((s,x)=>s+x.hogar,0)/historico.length);
+
+    ['junio','julio','agosto'].forEach(m=>{
+      html+=`<div class="item">
+        <b>${m}</b><br>
+        ${getNameYo()} (estimado): $${promedioYo}<br>
+        ${getNameElla()} (estimado): $${promedioElla}<br>
+        Hogar: $${promedioHogar}
+      </div>`;
+    });
+  }
+
+  document.getElementById('content').innerHTML=html;
+}
+
+function setTab(t){
+  tab=t;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
