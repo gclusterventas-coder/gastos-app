@@ -3,42 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gastos App</title>
+<title>Gastos App Pro</title>
 <style>
-:root{--bg:#0b0b0c;--card:#1c1c1f;--border:#2c2c2f;--text:#fff;--muted:#9a9a9a;--blue:#3b82f6;--green:#22c55e;--red:#ef4444}
+:root{--bg:#0b0b0c;--card:#1c1c1f;--border:#2c2c2f;--text:#fff;--muted:#9a9a9a;--green:#22c55e}
 body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui}
 .app{max-width:420px;margin:auto;padding:14px}
-.header{display:flex;justify-content:space-between;margin-bottom:14px}
-.names{display:flex;gap:8px;margin-bottom:10px}
-.names input{flex:1;background:#1c1c1f;color:white;border:1px solid var(--border);padding:8px;border-radius:8px}
-.tabs{display:flex;gap:6px;margin-bottom:10px}
-.tab{flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:#181818;color:#aaa;cursor:pointer}
+.header{display:flex;justify-content:space-between}
+.tabs{display:flex;gap:6px;margin:12px 0}
+.tab{flex:1;padding:10px;border:1px solid var(--border);background:#181818;color:#aaa;border-radius:10px;cursor:pointer}
 .tab.active{background:#232323;color:#fff}
-.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
-.card{background:var(--card);padding:10px;border-radius:12px;border:1px solid var(--border)}
-.label{font-size:11px;color:var(--muted)}
-.value{font-size:18px;font-weight:600}
-.balance{background:#1c1c1f;border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px;display:flex;justify-content:space-between}
-.section{margin:12px 0 6px;font-size:11px;color:#aaa;text-transform:uppercase}
-.item{display:flex;justify-content:space-between;align-items:center;background:#181818;border:1px solid var(--border);border-radius:14px;padding:10px;margin-bottom:6px}
-.left{display:flex;align-items:center;gap:10px}
-.icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#eee;color:black}
-.amount{font-weight:600}
-.add{margin-top:10px;border:1px dashed var(--border);padding:10px;border-radius:12px;text-align:center;color:#aaa;cursor:pointer}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center}
-.modal-inner{background:#1c1c1f;padding:16px;border-radius:12px;width:280px}
-input,select{width:100%;margin-bottom:8px;padding:8px;border-radius:6px;border:none}
-button{padding:8px;width:100%;cursor:pointer}
+.card{background:var(--card);padding:10px;border-radius:12px;border:1px solid var(--border);margin-bottom:10px}
+.item{display:flex;justify-content:space-between;padding:10px;border:1px solid var(--border);border-radius:12px;margin-bottom:6px}
+.add{border:1px dashed var(--border);padding:10px;text-align:center;border-radius:10px;cursor:pointer;color:#aaa}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;justify-content:center;align-items:center}
+.modal-inner{background:#1c1c1f;padding:16px;border-radius:12px;width:260px}
+input,select{width:100%;margin-bottom:8px;padding:8px;border:none;border-radius:6px}
+button{width:100%;padding:8px}
 </style>
 </head>
 <body>
 <div class="app">
-<div class="header"><h3>💑 gastos del mes</h3><span>mayo 2026</span></div>
-<div class="names"><input id="nameYo"><input id="nameElla"></div>
+<div class="header"><h3>💑 gastos</h3><span>mayo</span></div>
 <div class="tabs">
-<button class="tab active" onclick="setTab('yo')">yo</button>
-<button class="tab" onclick="setTab('ella')">ella</button>
-<button class="tab" onclick="setTab('proyeccion')">proyección</button>
+<button class="tab active" onclick="setTab('yo',this)">yo</button>
+<button class="tab" onclick="setTab('ella',this)">ella</button>
+<button class="tab" onclick="setTab('proy',this)">proyección</button>
 </div>
 <div id="content"></div>
 <div id="modal"></div>
@@ -46,61 +35,57 @@ button{padding:8px;width:100%;cursor:pointer}
 
 <script>
 let tab='yo';
-const nameYo=document.getElementById('nameYo');
-const nameElla=document.getElementById('nameElla');
-nameYo.value=localStorage.getItem('yo')||'yo';
-nameElla.value=localStorage.getItem('ella')||'ella';
-nameYo.oninput=()=>localStorage.setItem('yo',nameYo.value);
-nameElla.oninput=()=>localStorage.setItem('ella',nameElla.value);
-
 let gastos=JSON.parse(localStorage.getItem('gastos')||'[]');
-let ingresos=[{quien:'yo',monto:250000},{quien:'ella',monto:240000}];
-
-function sum(q){return gastos.filter(x=>x.quien==q).reduce((s,x)=>s+x.monto,0)}
+let ingresos={yo:250000,ella:240000};
 
 function render(){
  let html='';
  if(tab==='yo'||tab==='ella'){
-  const q=tab;
-  const total=sum(q);
-  const ingreso=ingresos.find(x=>x.quien==q).monto;
-  html+=`<div class="grid">
-  <div class="card"><div class="label">total</div><div class="value">$${total}</div></div>
-  <div class="card"><div class="label">ingresos</div><div class="value" style="color:var(--green)">$${ingreso}</div></div>
-  <div class="card"><div class="label">balance</div><div class="value">$${ingreso-total}</div></div>
-  </div>`;
+  const total=gastos.filter(x=>x.quien===tab).reduce((s,x)=>s+x.monto,0);
+  html+=`<div class="card">Total: $${total}<br>Ingreso: $${ingresos[tab]}<br>Balance: $${ingresos[tab]-total}</div>`;
 
-  html+=`<div class="section">gastos</div>`;
-  gastos.filter(x=>x.quien==q).forEach((g,i)=>{
-    html+=`<div class="item"><div class="left"><div class="icon">${g.icon}</div>${g.tipo}</div><div class="amount">$${g.monto} <span onclick="del(${i})">❌</span></div></div>`;
+  gastos.filter(x=>x.quien===tab).forEach((g,i)=>{
+    html+=`<div class="item">${g.icon} ${g.tipo}<span>$${g.monto} <b onclick="del(${i})">❌</b></span></div>`;
   });
 
-  html+=`<div class="add" onclick="openModal('${q}')">+ agregar</div>`;
+  html+=`<div class="add" onclick="openModal('${tab}')">+ agregar</div>`;
  }
 
- if(tab==='proyeccion'){
-  const avgYo=sum('yo')||0;
-  const avgElla=sum('ella')||0;
-  ['junio','julio','agosto'].forEach(m=>{
-    html+=`<div class="card">${m}<br>${nameYo.value}: $${avgYo}<br>${nameElla.value}: $${avgElla}</div>`;
+ if(tab==='proy'){
+  const y=gastos.filter(x=>x.quien==='yo').reduce((s,x)=>s+x.monto,0);
+  const e=gastos.filter(x=>x.quien==='ella').reduce((s,x)=>s+x.monto,0);
+  ['jun','jul','ago'].forEach(m=>{
+    html+=`<div class="card">${m}<br>yo: $${y}<br>ella: $${e}</div>`;
   });
  }
+
  document.getElementById('content').innerHTML=html;
  localStorage.setItem('gastos',JSON.stringify(gastos));
 }
 
-function setTab(t){tab=t;document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));event.target.classList.add('active');render()}
+function setTab(t,btn){
+ tab=t;
+ document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+ btn.classList.add('active');
+ render();
+}
 
-function del(i){gastos.splice(i,1);render()}
+function del(i){gastos.splice(i,1);render();}
 
 function openModal(q){
- document.getElementById('modal').innerHTML=`<div class='modal' onclick="closeM(event)"><div class='modal-inner' onclick="event.stopPropagation()">
- <select id='tipo'><option>moto</option><option>tarjeta</option><option>salud</option></select>
- <input id='monto' placeholder='monto' type='number'>
- <button onclick="save('${q}')">guardar</button>
- </div></div>`}
-
-function closeM(e){if(e.target.classList.contains('modal')) document.getElementById('modal').innerHTML=''}
+ document.getElementById('modal').innerHTML=`
+ <div class='modal' onclick="if(event.target.className==='modal')this.innerHTML=''">
+  <div class='modal-inner'>
+   <select id='tipo'>
+    <option>moto</option>
+    <option>tarjeta</option>
+    <option>salud</option>
+   </select>
+   <input id='monto' type='number' placeholder='monto'>
+   <button onclick="save('${q}')">guardar</button>
+  </div>
+ </div>`;
+}
 
 function save(q){
  const tipo=document.getElementById('tipo').value;
