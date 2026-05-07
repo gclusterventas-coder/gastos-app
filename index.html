@@ -3,27 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gastos App Pro</title>
+<title>Gastos Full App</title>
 <style>
-:root{--bg:#0b0b0c;--card:#1c1c1f;--border:#2c2c2f;--text:#fff;--muted:#9a9a9a;--green:#22c55e}
+:root{--bg:#0b0b0c;--card:#1c1c1f;--border:#2c2c2f;--text:#fff;--muted:#9a9a9a;--green:#22c55e;--red:#ef4444;}
 body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui}
-.app{max-width:420px;margin:auto;padding:14px}
-.header{display:flex;justify-content:space-between}
-.tabs{display:flex;gap:6px;margin:12px 0}
-.tab{flex:1;padding:10px;border:1px solid var(--border);background:#181818;color:#aaa;border-radius:10px;cursor:pointer}
+.app{max-width:430px;margin:auto;padding:14px}
+.header{display:flex;justify-content:space-between;margin-bottom:12px}
+.names{display:flex;gap:6px}
+.names input{flex:1;background:#1c1c1f;border:1px solid var(--border);color:#fff;padding:8px;border-radius:8px}
+.tabs{display:flex;gap:6px;margin:10px 0}
+.tab{flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:#181818;color:#aaa;cursor:pointer}
 .tab.active{background:#232323;color:#fff}
-.card{background:var(--card);padding:10px;border-radius:12px;border:1px solid var(--border);margin-bottom:10px}
-.item{display:flex;justify-content:space-between;padding:10px;border:1px solid var(--border);border-radius:12px;margin-bottom:6px}
-.add{border:1px dashed var(--border);padding:10px;text-align:center;border-radius:10px;cursor:pointer;color:#aaa}
+.card{background:var(--card);padding:12px;border-radius:12px;border:1px solid var(--border);margin-bottom:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.label{font-size:11px;color:var(--muted)}
+.value{font-size:17px;font-weight:600}
+.section{margin-top:12px;font-size:11px;color:#aaa}
+.item{display:flex;justify-content:space-between;align-items:center;background:#181818;border:1px solid var(--border);border-radius:12px;padding:10px;margin-bottom:6px}
+.left{display:flex;gap:8px;align-items:center}
+.icon{width:32px;height:32px;background:#eee;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#000}
+.add{border:1px dashed var(--border);padding:10px;text-align:center;border-radius:10px;color:#aaa;cursor:pointer}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;justify-content:center;align-items:center}
-.modal-inner{background:#1c1c1f;padding:16px;border-radius:12px;width:260px}
+.modal-inner{background:#1c1c1f;padding:14px;border-radius:12px;width:260px}
 input,select{width:100%;margin-bottom:8px;padding:8px;border:none;border-radius:6px}
 button{width:100%;padding:8px}
 </style>
 </head>
 <body>
 <div class="app">
-<div class="header"><h3>💑 gastos</h3><span>mayo</span></div>
+<div class="header"><h3>💑 gastos del mes</h3><span>mayo 2026</span></div>
+<div class="names"><input id="ny"><input id="ne"></div>
 <div class="tabs">
 <button class="tab active" onclick="setTab('yo',this)">yo</button>
 <button class="tab" onclick="setTab('ella',this)">ella</button>
@@ -32,66 +41,73 @@ button{width:100%;padding:8px}
 <div id="content"></div>
 <div id="modal"></div>
 </div>
-
 <script>
 let tab='yo';
 let gastos=JSON.parse(localStorage.getItem('gastos')||'[]');
-let ingresos={yo:250000,ella:240000};
+let ingresos=JSON.parse(localStorage.getItem('ingresos')||'{"yo":250000,"ella":240000}');
+
+const ny=document.getElementById('ny');
+const ne=document.getElementById('ne');
+ny.value=localStorage.getItem('ny')||'yo';
+ne.value=localStorage.getItem('ne')||'ella';
+ny.oninput=()=>localStorage.setItem('ny',ny.value);
+ne.oninput=()=>localStorage.setItem('ne',ne.value);
+
+function getTotal(q){return gastos.filter(x=>x.quien===q).reduce((s,x)=>s+x.monto,0)}
 
 function render(){
  let html='';
  if(tab==='yo'||tab==='ella'){
-  const total=gastos.filter(x=>x.quien===tab).reduce((s,x)=>s+x.monto,0);
-  html+=`<div class="card">Total: $${total}<br>Ingreso: $${ingresos[tab]}<br>Balance: $${ingresos[tab]-total}</div>`;
+  const total=getTotal(tab);
+  const ingreso=ingresos[tab]||0;
+  html+=`<div class="grid">
+    <div class="card"><div class="label">total</div><div class="value">$${total}</div></div>
+    <div class="card"><div class="label">ingresos</div><div class="value" style="color:var(--green)">$${ingreso}</div></div>
+    <div class="card"><div class="label">balance</div><div class="value">$${ingreso-total}</div></div>
+  </div>`;
 
+  html+=`<div class="section">gastos</div>`;
   gastos.filter(x=>x.quien===tab).forEach((g,i)=>{
-    html+=`<div class="item">${g.icon} ${g.tipo}<span>$${g.monto} <b onclick="del(${i})">❌</b></span></div>`;
+    html+=`<div class="item"><div class="left"><div class="icon">${g.icon}</div>${g.tipo}</div><div>$${g.monto} <span onclick="del(${i})">❌</span></div></div>`;
   });
 
-  html+=`<div class="add" onclick="openModal('${tab}')">+ agregar</div>`;
+  html+=`<div class="add" onclick="openModal('${tab}')">+ agregar gasto</div>`;
  }
 
  if(tab==='proy'){
-  const y=gastos.filter(x=>x.quien==='yo').reduce((s,x)=>s+x.monto,0);
-  const e=gastos.filter(x=>x.quien==='ella').reduce((s,x)=>s+x.monto,0);
-  ['jun','jul','ago'].forEach(m=>{
-    html+=`<div class="card">${m}<br>yo: $${y}<br>ella: $${e}</div>`;
+  const y=getTotal('yo');
+  const e=getTotal('ella');
+  ['junio','julio','agosto'].forEach(m=>{
+    html+=`<div class="card"><b>${m}</b><br>${ny.value}: $${y}<br>${ne.value}: $${e}</div>`;
   });
  }
 
  document.getElementById('content').innerHTML=html;
  localStorage.setItem('gastos',JSON.stringify(gastos));
+ localStorage.setItem('ingresos',JSON.stringify(ingresos));
 }
 
-function setTab(t,btn){
- tab=t;
- document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
- btn.classList.add('active');
- render();
-}
-
-function del(i){gastos.splice(i,1);render();}
+function setTab(t,b){tab=t;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');render()}
+function del(i){gastos.splice(i,1);render()}
 
 function openModal(q){
- document.getElementById('modal').innerHTML=`
- <div class='modal' onclick="if(event.target.className==='modal')this.innerHTML=''">
-  <div class='modal-inner'>
-   <select id='tipo'>
-    <option>moto</option>
-    <option>tarjeta</option>
-    <option>salud</option>
-   </select>
-   <input id='monto' type='number' placeholder='monto'>
-   <button onclick="save('${q}')">guardar</button>
-  </div>
- </div>`;
-}
+ document.getElementById('modal').innerHTML=`<div class='modal' onclick="if(event.target.className==='modal')this.innerHTML=''">
+ <div class='modal-inner'>
+ <select id='tipo'>
+ <option value='moto'>🏍️ moto</option>
+ <option value='tarjeta'>💳 tarjeta</option>
+ <option value='salud'>💊 salud</option>
+ <option value='comida'>🍔 comida</option>
+ </select>
+ <input id='monto' type='number' placeholder='monto'>
+ <button onclick="save('${q}')">guardar</button>
+ </div></div>`}
 
 function save(q){
  const tipo=document.getElementById('tipo').value;
  const monto=parseInt(document.getElementById('monto').value||0);
- const icon={moto:'🏍️',tarjeta:'💳',salud:'💊'}[tipo];
- if(monto){gastos.push({tipo,icon,monto,quien:q});}
+ const icons={moto:'🏍️',tarjeta:'💳',salud:'💊',comida:'🍔'};
+ if(monto){gastos.push({tipo,icon:icons[tipo],monto,quien:q});}
  document.getElementById('modal').innerHTML='';
  render();
 }
