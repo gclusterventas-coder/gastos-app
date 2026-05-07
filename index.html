@@ -3,145 +3,115 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gastos UI Pro</title>
+<title>Gastos App</title>
 <style>
-:root{
-  --bg:#0b0b0c;
-  --card:#1c1c1f;
-  --border:#2c2c2f;
-  --text:#ffffff;
-  --muted:#9a9a9a;
-  --blue:#3b82f6;
-  --green:#22c55e;
-  --red:#ef4444;
-}
-
+:root{--bg:#0b0b0c;--card:#1c1c1f;--border:#2c2c2f;--text:#fff;--muted:#9a9a9a;--blue:#3b82f6;--green:#22c55e;--red:#ef4444}
 body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui}
 .app{max-width:420px;margin:auto;padding:14px}
-
-.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.header h2{font-size:18px}
-.header span{color:var(--muted);font-size:13px}
-
+.header{display:flex;justify-content:space-between;margin-bottom:14px}
 .names{display:flex;gap:8px;margin-bottom:10px}
 .names input{flex:1;background:#1c1c1f;color:white;border:1px solid var(--border);padding:8px;border-radius:8px}
-
 .tabs{display:flex;gap:6px;margin-bottom:10px}
-.tab{flex:1;padding:10px;font-size:13px;border-radius:10px;border:1px solid var(--border);background:#181818;color:#aaa}
+.tab{flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:#181818;color:#aaa;cursor:pointer}
 .tab.active{background:#232323;color:#fff}
-
 .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
 .card{background:var(--card);padding:10px;border-radius:12px;border:1px solid var(--border)}
 .label{font-size:11px;color:var(--muted)}
-.value{font-size:18px;font-weight:600;margin-top:2px}
-.sub{font-size:11px;color:#777}
-
+.value{font-size:18px;font-weight:600}
 .balance{background:#1c1c1f;border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px;display:flex;justify-content:space-between}
-
 .section{margin:12px 0 6px;font-size:11px;color:#aaa;text-transform:uppercase}
-
 .item{display:flex;justify-content:space-between;align-items:center;background:#181818;border:1px solid var(--border);border-radius:14px;padding:10px;margin-bottom:6px}
 .left{display:flex;align-items:center;gap:10px}
-.icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#eee;color:black;font-size:16px}
-.name{font-size:14px}
-.meta{font-size:11px;color:#888}
+.icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#eee;color:black}
 .amount{font-weight:600}
-.add{margin-top:10px;border:1px dashed var(--border);padding:10px;border-radius:12px;text-align:center;color:#aaa}
+.add{margin-top:10px;border:1px dashed var(--border);padding:10px;border-radius:12px;text-align:center;color:#aaa;cursor:pointer}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center}
+.modal-inner{background:#1c1c1f;padding:16px;border-radius:12px;width:280px}
+input,select{width:100%;margin-bottom:8px;padding:8px;border-radius:6px;border:none}
+button{padding:8px;width:100%;cursor:pointer}
 </style>
 </head>
 <body>
 <div class="app">
-
-<div class="header">
-<h2>💑 gastos del mes</h2>
-<span>mayo 2026</span>
-</div>
-
-<div class="names">
-<input id="nameYo" placeholder="yo">
-<input id="nameElla" placeholder="ella">
-</div>
-
+<div class="header"><h3>💑 gastos del mes</h3><span>mayo 2026</span></div>
+<div class="names"><input id="nameYo"><input id="nameElla"></div>
 <div class="tabs">
-<button class="tab active">yo</button>
-<button class="tab">ella</button>
-<button class="tab">hogar</button>
+<button class="tab active" onclick="setTab('yo')">yo</button>
+<button class="tab" onclick="setTab('ella')">ella</button>
+<button class="tab" onclick="setTab('proyeccion')">proyección</button>
+</div>
+<div id="content"></div>
+<div id="modal"></div>
 </div>
 
-<div class="grid">
-<div class="card"><div class="label">tu total</div><div class="value" style="color:var(--blue)">$170.900</div><div class="sub">este mes</div></div>
-<div class="card"><div class="label">personal</div><div class="value">$62.000</div><div class="sub">solo tuyo</div></div>
-<div class="card"><div class="label">tu mitad hogar</div><div class="value">$108.900</div><div class="sub">50% total</div></div>
-</div>
+<script>
+let tab='yo';
+const nameYo=document.getElementById('nameYo');
+const nameElla=document.getElementById('nameElla');
+nameYo.value=localStorage.getItem('yo')||'yo';
+nameElla.value=localStorage.getItem('ella')||'ella';
+nameYo.oninput=()=>localStorage.setItem('yo',nameYo.value);
+nameElla.oninput=()=>localStorage.setItem('ella',nameElla.value);
 
-<div class="balance">
-<div>
-<div class="label">diferencia</div>
-<div class="sub">vos gastás más</div>
-</div>
-<div style="color:var(--red)">+$4.800</div>
-</div>
+let gastos=JSON.parse(localStorage.getItem('gastos')||'[]');
+let ingresos=[{quien:'yo',monto:250000},{quien:'ella',monto:240000}];
 
-<div class="section">🏠 hogar compartido</div>
-<div class="item">
-<div class="left">
-<div class="icon">🏠</div>
-<div>
-<div class="name">hogar compartido</div>
-<div class="meta">8 gastos</div>
-</div>
-</div>
-<div class="amount">$108.900</div>
-</div>
+function sum(q){return gastos.filter(x=>x.quien==q).reduce((s,x)=>s+x.monto,0)}
 
-<div class="section">👤 gastos personales</div>
+function render(){
+ let html='';
+ if(tab==='yo'||tab==='ella'){
+  const q=tab;
+  const total=sum(q);
+  const ingreso=ingresos.find(x=>x.quien==q).monto;
+  html+=`<div class="grid">
+  <div class="card"><div class="label">total</div><div class="value">$${total}</div></div>
+  <div class="card"><div class="label">ingresos</div><div class="value" style="color:var(--green)">$${ingreso}</div></div>
+  <div class="card"><div class="label">balance</div><div class="value">$${ingreso-total}</div></div>
+  </div>`;
 
-<div class="item">
-<div class="left">
-<div class="icon">🏍️</div>
-<div>
-<div class="name">moto</div>
-<div class="meta">cuota</div>
-</div>
-</div>
-<div class="amount">$18.000</div>
-</div>
+  html+=`<div class="section">gastos</div>`;
+  gastos.filter(x=>x.quien==q).forEach((g,i)=>{
+    html+=`<div class="item"><div class="left"><div class="icon">${g.icon}</div>${g.tipo}</div><div class="amount">$${g.monto} <span onclick="del(${i})">❌</span></div></div>`;
+  });
 
-<div class="item">
-<div class="left">
-<div class="icon">💳</div>
-<div>
-<div class="name">tarjeta</div>
-<div class="meta">mensual</div>
-</div>
-</div>
-<div class="amount">$32.000</div>
-</div>
+  html+=`<div class="add" onclick="openModal('${q}')">+ agregar</div>`;
+ }
 
-<div class="item">
-<div class="left">
-<div class="icon">💊</div>
-<div>
-<div class="name">salud</div>
-<div class="meta">obra social</div>
-</div>
-</div>
-<div class="amount">$6.500</div>
-</div>
+ if(tab==='proyeccion'){
+  const avgYo=sum('yo')||0;
+  const avgElla=sum('ella')||0;
+  ['junio','julio','agosto'].forEach(m=>{
+    html+=`<div class="card">${m}<br>${nameYo.value}: $${avgYo}<br>${nameElla.value}: $${avgElla}</div>`;
+  });
+ }
+ document.getElementById('content').innerHTML=html;
+ localStorage.setItem('gastos',JSON.stringify(gastos));
+}
 
-<div class="item">
-<div class="left">
-<div class="icon">📱</div>
-<div>
-<div class="name">suscripciones</div>
-<div class="meta">Netflix, Spotify</div>
-</div>
-</div>
-<div class="amount">$5.500</div>
-</div>
+function setTab(t){tab=t;document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));event.target.classList.add('active');render()}
 
-<div class="add">+ agregar gasto personal</div>
+function del(i){gastos.splice(i,1);render()}
 
-</div>
+function openModal(q){
+ document.getElementById('modal').innerHTML=`<div class='modal' onclick="closeM(event)"><div class='modal-inner' onclick="event.stopPropagation()">
+ <select id='tipo'><option>moto</option><option>tarjeta</option><option>salud</option></select>
+ <input id='monto' placeholder='monto' type='number'>
+ <button onclick="save('${q}')">guardar</button>
+ </div></div>`}
+
+function closeM(e){if(e.target.classList.contains('modal')) document.getElementById('modal').innerHTML=''}
+
+function save(q){
+ const tipo=document.getElementById('tipo').value;
+ const monto=parseInt(document.getElementById('monto').value||0);
+ const icon={moto:'🏍️',tarjeta:'💳',salud:'💊'}[tipo];
+ if(monto){gastos.push({tipo,icon,monto,quien:q});}
+ document.getElementById('modal').innerHTML='';
+ render();
+}
+
+render();
+</script>
 </body>
 </html>
